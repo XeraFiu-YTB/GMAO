@@ -3,6 +3,7 @@ const path = require('path');
 const sequelize = require('./database');
 const equipmentRoutes = require('./routes/equipmentRoutes');
 const maintenanceTaskRoutes = require('./routes/maintenanceTaskRoutes');
+const locationRoutes = require('./routes/locationRoutes');
 
 const app = express();
 const port = 3000;
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/equipment', equipmentRoutes);
 app.use('/maintenance-tasks', maintenanceTaskRoutes);
+app.use('/locations', locationRoutes);
 
 sequelize.sync({ alter: true }).then(() => {
   app.listen(port, () => {

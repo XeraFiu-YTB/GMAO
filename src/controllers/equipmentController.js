@@ -1,9 +1,29 @@
+const { Op } = require('sequelize');
 const Equipment = require('../models/equipment');
+const Location = require('../models/location');
 
-// Get all equipment
+// Get all equipment with search and filtering
 exports.getAllEquipment = async (req, res) => {
   try {
-    const equipment = await Equipment.findAll();
+    const { search, locationId } = req.query;
+    const where = {};
+
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { serial_number: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (locationId) {
+      where.LocationId = locationId;
+    }
+
+    const equipment = await Equipment.findAll({
+      where,
+      include: Location,
+      order: [['id', 'ASC']]
+    });
     res.status(200).json(equipment);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -13,7 +33,7 @@ exports.getAllEquipment = async (req, res) => {
 // Get equipment by ID
 exports.getEquipmentById = async (req, res) => {
   try {
-    const equipment = await Equipment.findByPk(req.params.id);
+    const equipment = await Equipment.findByPk(req.params.id, { include: Location });
     if (equipment) {
       res.status(200).json(equipment);
     } else {
@@ -34,7 +54,7 @@ exports.createEquipment = async (req, res) => {
   }
 };
 
-// Update equipment
+// Update equipment (including running hours)
 exports.updateEquipment = async (req, res) => {
   try {
     const equipment = await Equipment.findByPk(req.params.id);

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
+const Location = require('./location');
 
 const Equipment = sequelize.define('Equipment', {
   name: {
@@ -9,15 +10,18 @@ const Equipment = sequelize.define('Equipment', {
   description: {
     type: DataTypes.STRING
   },
-  location: {
-    type: DataTypes.STRING
-  },
   manufacturer: {
     type: DataTypes.STRING
   },
   serial_number: {
     type: DataTypes.STRING
+  },
+  running_hours: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 });
+
+Equipment.belongsTo(Location);
 
 module.exports = Equipment;

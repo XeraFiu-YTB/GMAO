@@ -27,13 +27,29 @@
   <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1>Equipment Management</h1>
-      <a href="/maintenance.html" class="btn btn-secondary">Go to Maintenance Tasks</a>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        Add New Equipment
+    <!-- Add Location Card -->
+    <div class="card mb-4">
+      <div class="card-header">Manage Locations</div>
+      <div class="card-body">
+        <form id="add-location-form" class="row g-3 align-items-end">
+          <div class="col-auto">
+            <label for="location-name" class="form-label">New Location Name</label>
+            <input type="text" class="form-control" id="location-name" required>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-secondary">Add Location</button>
+          </div>
+        </form>
+        <h5 class="mt-4">Existing Locations</h5>
+        <ul id="location-list" class="list-group"></ul>
       </div>
+    </div>
+
+    <!-- Add Equipment Card -->
+    <div class="card mb-4">
+      <div class="card-header">Add New Equipment</div>
       <div class="card-body">
         <form id="add-equipment-form">
           <div class="row g-3">
@@ -42,8 +58,8 @@
               <input type="text" class="form-control" id="name" placeholder="e.g., Main Engine" required>
             </div>
             <div class="col-md-6">
-              <label for="location" class="form-label">Location</label>
-              <input type="text" class="form-control" id="location" placeholder="e.g., Engine Room">
+              <label for="LocationId" class="form-label">Location</label>
+              <select class="form-select" id="LocationId" required></select>
             </div>
             <div class="col-12">
               <label for="description" class="form-label">Description</label>
@@ -65,116 +81,179 @@
       </div>
     </div>
 
-    <h2 class="mt-5">Equipment List</h2>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Location</th>
-            <th>Manufacturer</th>
-            <th>Serial Number</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="equipment-list">
-          <!-- Equipment data will be populated here by JavaScript -->
-        </tbody>
-      </table>
+    <!-- Equipment List Card -->
+    <div class="card">
+        <div class="card-header">
+            Equipment List
+        </div>
+        <div class="card-body">
+            <div class="row mb-3 g-2">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="search-input" placeholder="Search by name or serial number...">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="filter-location"></select>
+                </div>
+                 <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" id="reset-filters">Reset</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Running Hours</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipment-list"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
   </div>
 
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const form = document.getElementById('add-equipment-form');
+    const equipmentForm = document.getElementById('add-equipment-form');
+    const locationForm = document.getElementById('add-location-form');
     const equipmentList = document.getElementById('equipment-list');
+    const locationList = document.getElementById('location-list');
+    const locationSelect = document.getElementById('LocationId');
+    const filterLocationSelect = document.getElementById('filter-location');
+    const searchInput = document.getElementById('search-input');
+    const resetFiltersBtn = document.getElementById('reset-filters');
+
+    // Fetch and display locations
+    async function getLocations() {
+      const response = await fetch('/locations');
+      const locations = await response.json();
+
+      locationList.innerHTML = '';
+      locationSelect.innerHTML = '<option value="">Select Location</option>';
+      filterLocationSelect.innerHTML = '<option value="">Filter by Location</option>';
+
+      locations.forEach(location => {
+        // Populate lists
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        listItem.textContent = location.name;
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-sm';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => deleteLocation(location.id);
+        listItem.appendChild(deleteBtn);
+        locationList.appendChild(listItem);
+
+        // Populate select dropdowns
+        const option = new Option(location.name, location.id);
+        locationSelect.add(option.cloneNode(true));
+        filterLocationSelect.add(option);
+      });
+    }
 
     // Fetch and display equipment
     async function getEquipment() {
-      try {
-        const response = await fetch('/equipment');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        let url = '/equipment?';
+        const params = new URLSearchParams();
+        if (searchInput.value) params.append('search', searchInput.value);
+        if (filterLocationSelect.value) params.append('locationId', filterLocationSelect.value);
+        url += params.toString();
+
+        const response = await fetch(url);
         const data = await response.json();
-
         equipmentList.innerHTML = '';
-        if (data.length === 0) {
-          equipmentList.innerHTML = '<tr><td colspan="7" class="text-center">No equipment found.</td></tr>';
-          return;
-        }
-
-        data.forEach(equipment => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${equipment.id}</td>
-            <td>${equipment.name}</td>
-            <td>${equipment.description || ''}</td>
-            <td>${equipment.location || ''}</td>
-            <td>${equipment.manufacturer || ''}</td>
-            <td>${equipment.serial_number || ''}</td>
-            <td>
-              <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${equipment.id})">Delete</button>
-            </td>
-          `;
-          equipmentList.appendChild(row);
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.id}</td>
+                <td>${item.name} <br><small class="text-muted">${item.serial_number || ''}</small></td>
+                <td>${item.Location ? item.Location.name : 'N/A'}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" value="${item.running_hours}" onchange="updateRunningHours(${item.id}, this.value)" style="width: 120px;">
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${item.id})">Delete</button>
+                </td>
+            `;
+            equipmentList.appendChild(row);
         });
-      } catch (error) {
-        console.error('Failed to fetch equipment:', error);
-        equipmentList.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load equipment.</td></tr>';
-      }
+    }
+
+    // Add new location
+    locationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newLocation = { name: document.getElementById('location-name').value };
+      await fetch('/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLocation),
+      });
+      locationForm.reset();
+      getLocations();
+    });
+
+    // Delete location
+    async function deleteLocation(id) {
+        if (!confirm('Are you sure? Deleting a location may affect assigned equipment.')) return;
+        await fetch(`/locations/${id}`, { method: 'DELETE' });
+        getLocations();
+        getEquipment();
     }
 
     // Add new equipment
-    form.addEventListener('submit', async (e) => {
+    equipmentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const newEquipment = {
         name: document.getElementById('name').value,
         description: document.getElementById('description').value,
-        location: document.getElementById('location').value,
         manufacturer: document.getElementById('manufacturer').value,
         serial_number: document.getElementById('serial_number').value,
+        LocationId: document.getElementById('LocationId').value,
       };
-
-      try {
-        const response = await fetch('/equipment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEquipment),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        form.reset();
-        getEquipment();
-      } catch (error) {
-        console.error('Failed to add equipment:', error);
-        alert('Failed to add equipment. Please check the console for details.');
-      }
+      await fetch('/equipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEquipment),
+      });
+      equipmentForm.reset();
+      getEquipment();
     });
+
+    // Update running hours
+    async function updateRunningHours(id, hours) {
+        await fetch(`/equipment/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ running_hours: parseInt(hours, 10) }),
+        });
+    }
 
     // Delete equipment
     async function deleteEquipment(id) {
-      if (!confirm('Are you sure you want to delete this equipment?')) {
-        return;
-      }
-      try {
-        const response = await fetch(`/equipment/${id}`, { method: 'DELETE' });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!confirm('Are you sure you want to delete this equipment?')) return;
+        await fetch(`/equipment/${id}`, { method: 'DELETE' });
         getEquipment();
-      } catch (error) {
-        console.error('Failed to delete equipment:', error);
-        alert('Failed to delete equipment. Please check the console for details.');
-      }
     }
 
+    // Event Listeners for filters
+    searchInput.addEventListener('input', getEquipment);
+    filterLocationSelect.addEventListener('change', getEquipment);
+    resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        filterLocationSelect.value = '';
+        getEquipment();
+    });
+
     // Initial load
-    document.addEventListener('DOMContentLoaded', getEquipment);
+    document.addEventListener('DOMContentLoaded', () => {
+        getLocations();
+        getEquipment();
+    });
   </script>
 </body>
 </html>
