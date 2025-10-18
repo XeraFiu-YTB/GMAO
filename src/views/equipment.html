@@ -1,62 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Equipment Management</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GMAO - Equipment Management</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <h1>Equipment Management</h1>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">GMAO</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" href="/equipment.html">Equipment</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/maintenance.html">Maintenance</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-  <h2>Add Equipment</h2>
-  <form id="add-equipment-form">
-    <input type="text" id="name" placeholder="Name" required>
-    <input type="text" id="description" placeholder="Description">
-    <input type="text" id="location" placeholder="Location">
-    <input type="text" id="manufacturer" placeholder="Manufacturer">
-    <input type="text" id="serial_number" placeholder="Serial Number">
-    <button type="submit">Add Equipment</button>
-  </form>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Equipment Management</h1>
+      <a href="/maintenance.html" class="btn btn-secondary">Go to Maintenance Tasks</a>
+    </div>
 
-  <h2>Equipment List</h2>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Location</th>
-        <th>Manufacturer</th>
-        <th>Serial Number</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="equipment-list">
-    </tbody>
-  </table>
+    <div class="card">
+      <div class="card-header">
+        Add New Equipment
+      </div>
+      <div class="card-body">
+        <form id="add-equipment-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label">Name</label>
+              <input type="text" class="form-control" id="name" placeholder="e.g., Main Engine" required>
+            </div>
+            <div class="col-md-6">
+              <label for="location" class="form-label">Location</label>
+              <input type="text" class="form-control" id="location" placeholder="e.g., Engine Room">
+            </div>
+            <div class="col-12">
+              <label for="description" class="form-label">Description</label>
+              <input type="text" class="form-control" id="description" placeholder="e.g., 2-stroke marine diesel engine">
+            </div>
+            <div class="col-md-6">
+              <label for="manufacturer" class="form-label">Manufacturer</label>
+              <input type="text" class="form-control" id="manufacturer" placeholder="e.g., MAN B&W">
+            </div>
+            <div class="col-md-6">
+              <label for="serial_number" class="form-label">Serial Number</label>
+              <input type="text" class="form-control" id="serial_number" placeholder="e.g., S12345XYZ">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">Add Equipment</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
 
+    <h2 class="mt-5">Equipment List</h2>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Manufacturer</th>
+            <th>Serial Number</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="equipment-list">
+          <!-- Equipment data will be populated here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const form = document.getElementById('add-equipment-form');
     const equipmentList = document.getElementById('equipment-list');
 
     // Fetch and display equipment
     async function getEquipment() {
-      const response = await fetch('/equipment');
-      const data = await response.json();
-      equipmentList.innerHTML = '';
-      data.forEach(equipment => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${equipment.id}</td>
-          <td>${equipment.name}</td>
-          <td>${equipment.description}</td>
-          <td>${equipment.location}</td>
-          <td>${equipment.manufacturer}</td>
-          <td>${equipment.serial_number}</td>
-          <td>
-            <button onclick="deleteEquipment(${equipment.id})">Delete</button>
-          </td>
-        `;
-        equipmentList.appendChild(row);
-      });
+      try {
+        const response = await fetch('/equipment');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        equipmentList.innerHTML = '';
+        if (data.length === 0) {
+          equipmentList.innerHTML = '<tr><td colspan="7" class="text-center">No equipment found.</td></tr>';
+          return;
+        }
+
+        data.forEach(equipment => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${equipment.id}</td>
+            <td>${equipment.name}</td>
+            <td>${equipment.description || ''}</td>
+            <td>${equipment.location || ''}</td>
+            <td>${equipment.manufacturer || ''}</td>
+            <td>${equipment.serial_number || ''}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${equipment.id})">Delete</button>
+            </td>
+          `;
+          equipmentList.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Failed to fetch equipment:', error);
+        equipmentList.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load equipment.</td></tr>';
+      }
     }
 
     // Add new equipment
@@ -69,23 +138,43 @@
         manufacturer: document.getElementById('manufacturer').value,
         serial_number: document.getElementById('serial_number').value,
       };
-      await fetch('/equipment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newEquipment),
-      });
-      form.reset();
-      getEquipment();
+
+      try {
+        const response = await fetch('/equipment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEquipment),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        form.reset();
+        getEquipment();
+      } catch (error) {
+        console.error('Failed to add equipment:', error);
+        alert('Failed to add equipment. Please check the console for details.');
+      }
     });
 
     // Delete equipment
     async function deleteEquipment(id) {
-      await fetch(`/equipment/${id}`, { method: 'DELETE' });
-      getEquipment();
+      if (!confirm('Are you sure you want to delete this equipment?')) {
+        return;
+      }
+      try {
+        const response = await fetch(`/equipment/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        getEquipment();
+      } catch (error) {
+        console.error('Failed to delete equipment:', error);
+        alert('Failed to delete equipment. Please check the console for details.');
+      }
     }
 
     // Initial load
-    getEquipment();
+    document.addEventListener('DOMContentLoaded', getEquipment);
   </script>
 </body>
 </html>
