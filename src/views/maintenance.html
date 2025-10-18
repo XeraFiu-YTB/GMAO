@@ -12,7 +12,7 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="/">GMAO</a>
       <div class="collapse navbar-collapse">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
             <a class="nav-link" href="/equipment.html">Equipment</a>
           </li>
@@ -20,6 +20,7 @@
             <a class="nav-link active" href="/maintenance.html">Maintenance</a>
           </li>
         </ul>
+        <button id="logout-btn" class="btn btn-outline-light">Logout</button>
       </div>
     </div>
   </nav>
@@ -94,6 +95,18 @@
     const taskList = document.getElementById('task-list');
     const equipmentSelect = document.getElementById('task-equipment');
     const taskTypeSelect = document.getElementById('task-type');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    const authHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 
     // Toggle form fields based on task type
     taskTypeSelect.addEventListener('change', () => {
@@ -104,7 +117,8 @@
 
     // Fetch and populate equipment for the dropdown
     async function populateEquipment() {
-      const response = await fetch('/equipment');
+      const response = await fetch('/equipment', { headers: authHeaders });
+      if (response.status === 401) window.location.href = '/login.html';
       const equipment = await response.json();
       equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
       equipment.forEach(item => {
@@ -115,7 +129,8 @@
 
     // Fetch and display maintenance tasks
     async function getTasks() {
-      const response = await fetch('/maintenance-tasks');
+      const response = await fetch('/maintenance-tasks', { headers: authHeaders });
+      if (response.status === 401) window.location.href = '/login.html';
       const tasks = await response.json();
       taskList.innerHTML = '';
       tasks.forEach(task => {
@@ -159,7 +174,7 @@
       };
       await fetch('/maintenance-tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(newTask),
       });
       taskForm.reset();
@@ -170,7 +185,7 @@
     async function completeTask(id) {
         await fetch(`/maintenance-tasks/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ completed: true }),
         });
         getTasks();
@@ -179,9 +194,15 @@
     // Delete task
     async function deleteTask(id) {
       if (!confirm('Are you sure you want to delete this task?')) return;
-      await fetch(`/maintenance-tasks/${id}`, { method: 'DELETE' });
+      await fetch(`/maintenance-tasks/${id}`, { method: 'DELETE', headers: authHeaders });
       getTasks();
     }
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+    });
 
     // Initial load
     document.addEventListener('DOMContentLoaded', () => {

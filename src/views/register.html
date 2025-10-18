@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMAO - Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+     <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .register-card {
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card register-card">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Register New User</h3>
+            <form id="register-form">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role">
+                        <option value="Engineer">Engineer</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+                 <p class="text-center mt-3">
+                    Already have an account? <a href="/login.html">Login</a>
+                </p>
+            </form>
+            <div id="message" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const messageDiv = document.getElementById('message');
+
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role }),
+            });
+
+            if (response.ok) {
+                messageDiv.textContent = 'Registration successful! Redirecting to login...';
+                messageDiv.classList.remove('d-none', 'alert-danger');
+                messageDiv.classList.add('alert-success');
+                setTimeout(() => window.location.href = '/login.html', 2000);
+            } else {
+                const { error } = await response.json();
+                messageDiv.textContent = error;
+                messageDiv.classList.remove('d-none', 'alert-success');
+                messageDiv.classList.add('alert-danger');
+            }
+        });
+    </script>
+</body>
+</html>

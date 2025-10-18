@@ -1,0 +1,41 @@
+Executing (default): SELECT name FROM sqlite_master WHERE type='table' AND name='Users';
+Executing (default): PRAGMA TABLE_INFO(`Users`);
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): PRAGMA INDEX_LIST(`Users`)
+Executing (default): PRAGMA INDEX_INFO(`sqlite_autoindex_Users_1`)
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): PRAGMA TABLE_INFO(`Users`);
+Executing (default): PRAGMA INDEX_LIST(`Users`)
+Executing (default): PRAGMA INDEX_INFO(`sqlite_autoindex_Users_1`)
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): CREATE TABLE IF NOT EXISTS `Users_backup` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users_backup` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users`;
+Executing (default): DROP TABLE `Users`;
+Executing (default): CREATE TABLE IF NOT EXISTS `Users` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users_backup`;
+Executing (default): DROP TABLE `Users_backup`;
+Executing (default): PRAGMA TABLE_INFO(`Users`);
+Executing (default): PRAGMA INDEX_LIST(`Users`)
+Executing (default): PRAGMA INDEX_INFO(`sqlite_autoindex_Users_1`)
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): CREATE TABLE IF NOT EXISTS `Users_backup` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users_backup` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users`;
+Executing (default): DROP TABLE `Users`;
+Executing (default): CREATE TABLE IF NOT EXISTS `Users` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users_backup`;
+Executing (default): DROP TABLE `Users_backup`;
+Executing (default): PRAGMA TABLE_INFO(`Users`);
+Executing (default): PRAGMA INDEX_LIST(`Users`)
+Executing (default): PRAGMA INDEX_INFO(`sqlite_autoindex_Users_1`)
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): CREATE TABLE IF NOT EXISTS `Users_backup` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users_backup` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users`;
+Executing (default): DROP TABLE `Users`;
+Executing (default): CREATE TABLE IF NOT EXISTS `Users` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): INSERT INTO `Users` SELECT `id`, `username`, `password`, `role`, `createdAt`, `updatedAt` FROM `Users_backup`;
+Executing (default): DROP TABLE `Users_backup`;
+Executing (default): PRAGMA TABLE_INFO(`Users`);
+Executing (default): PRAGMA INDEX_LIST(`Users`)
+Executing (default): PRAGMA INDEX_INFO(`sqlite_autoindex_Users_1`)
+Executing (default): PRAGMA foreign_key_list(`Users`)
+Executing (default): CREATE TABLE IF NOT EXISTS `Users_backup` (`id` INTEGER PRIMARY KEY, `username` VARCHAR(255) NOT NULL UNIQUE, `password` VARCHAR(255) NOT NULL, `role` TEXT NOT NULL DEFAULT 'Engineer', `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);

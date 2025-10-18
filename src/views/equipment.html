@@ -12,7 +12,7 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="/">GMAO</a>
       <div class="collapse navbar-collapse">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
             <a class="nav-link active" href="/equipment.html">Equipment</a>
           </li>
@@ -20,6 +20,7 @@
             <a class="nav-link" href="/maintenance.html">Maintenance</a>
           </li>
         </ul>
+        <button id="logout-btn" class="btn btn-outline-light">Logout</button>
       </div>
     </div>
   </nav>
@@ -127,10 +128,24 @@
     const filterLocationSelect = document.getElementById('filter-location');
     const searchInput = document.getElementById('search-input');
     const resetFiltersBtn = document.getElementById('reset-filters');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const token = localStorage.getItem('token');
+
+    // If no token, redirect to login
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    const authHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 
     // Fetch and display locations
     async function getLocations() {
-      const response = await fetch('/locations');
+      const response = await fetch('/locations', { headers: authHeaders });
+      if (response.status === 401) window.location.href = '/login.html';
       const locations = await response.json();
 
       locationList.innerHTML = '';
@@ -138,7 +153,6 @@
       filterLocationSelect.innerHTML = '<option value="">Filter by Location</option>';
 
       locations.forEach(location => {
-        // Populate lists
         const listItem = document.createElement('li');
         listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
         listItem.textContent = location.name;
@@ -149,7 +163,6 @@
         listItem.appendChild(deleteBtn);
         locationList.appendChild(listItem);
 
-        // Populate select dropdowns
         const option = new Option(location.name, location.id);
         locationSelect.add(option.cloneNode(true));
         filterLocationSelect.add(option);
@@ -164,7 +177,8 @@
         if (filterLocationSelect.value) params.append('locationId', filterLocationSelect.value);
         url += params.toString();
 
-        const response = await fetch(url);
+        const response = await fetch(url, { headers: authHeaders });
+        if (response.status === 401) window.location.href = '/login.html';
         const data = await response.json();
         equipmentList.innerHTML = '';
         data.forEach(item => {
@@ -190,7 +204,7 @@
       const newLocation = { name: document.getElementById('location-name').value };
       await fetch('/locations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(newLocation),
       });
       locationForm.reset();
@@ -200,7 +214,7 @@
     // Delete location
     async function deleteLocation(id) {
         if (!confirm('Are you sure? Deleting a location may affect assigned equipment.')) return;
-        await fetch(`/locations/${id}`, { method: 'DELETE' });
+        await fetch(`/locations/${id}`, { method: 'DELETE', headers: authHeaders });
         getLocations();
         getEquipment();
     }
@@ -217,7 +231,7 @@
       };
       await fetch('/equipment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(newEquipment),
       });
       equipmentForm.reset();
@@ -228,7 +242,7 @@
     async function updateRunningHours(id, hours) {
         await fetch(`/equipment/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ running_hours: parseInt(hours, 10) }),
         });
     }
@@ -236,7 +250,7 @@
     // Delete equipment
     async function deleteEquipment(id) {
         if (!confirm('Are you sure you want to delete this equipment?')) return;
-        await fetch(`/equipment/${id}`, { method: 'DELETE' });
+        await fetch(`/equipment/${id}`, { method: 'DELETE', headers: authHeaders });
         getEquipment();
     }
 
@@ -247,6 +261,12 @@
         searchInput.value = '';
         filterLocationSelect.value = '';
         getEquipment();
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
     });
 
     // Initial load
