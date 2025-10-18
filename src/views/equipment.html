@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Equipment Management</title>
+</head>
+<body>
+  <h1>Equipment Management</h1>
+
+  <h2>Add Equipment</h2>
+  <form id="add-equipment-form">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="text" id="description" placeholder="Description">
+    <input type="text" id="location" placeholder="Location">
+    <input type="text" id="manufacturer" placeholder="Manufacturer">
+    <input type="text" id="serial_number" placeholder="Serial Number">
+    <button type="submit">Add Equipment</button>
+  </form>
+
+  <h2>Equipment List</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Location</th>
+        <th>Manufacturer</th>
+        <th>Serial Number</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="equipment-list">
+    </tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('add-equipment-form');
+    const equipmentList = document.getElementById('equipment-list');
+
+    // Fetch and display equipment
+    async function getEquipment() {
+      const response = await fetch('/equipment');
+      const data = await response.json();
+      equipmentList.innerHTML = '';
+      data.forEach(equipment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${equipment.id}</td>
+          <td>${equipment.name}</td>
+          <td>${equipment.description}</td>
+          <td>${equipment.location}</td>
+          <td>${equipment.manufacturer}</td>
+          <td>${equipment.serial_number}</td>
+          <td>
+            <button onclick="deleteEquipment(${equipment.id})">Delete</button>
+          </td>
+        `;
+        equipmentList.appendChild(row);
+      });
+    }
+
+    // Add new equipment
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newEquipment = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        location: document.getElementById('location').value,
+        manufacturer: document.getElementById('manufacturer').value,
+        serial_number: document.getElementById('serial_number').value,
+      };
+      await fetch('/equipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEquipment),
+      });
+      form.reset();
+      getEquipment();
+    });
+
+    // Delete equipment
+    async function deleteEquipment(id) {
+      await fetch(`/equipment/${id}`, { method: 'DELETE' });
+      getEquipment();
+    }
+
+    // Initial load
+    getEquipment();
+  </script>
+</body>
+</html>
